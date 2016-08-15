@@ -9,11 +9,28 @@
 import Cocoa
 
 class ViewController: NSViewController {
+    // Properties
+    @IBOutlet weak var productsButton: NSPopUpButton!
+    // Array
+    private var products = [Product]()
+    var selectedProduct: Product!
+    private var overviewViewController: OverviewController!
+    private var detailViewController: DetailViewController!
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        
+        if let filePath = NSBundle.mainBundle().pathForResource("Products", ofType: "plist") {
+            products = Product.productsList(filePath)
+        }
+        productsButton.removeAllItems()
+        for product in products {
+            productsButton.addItemWithTitle(product.title)
+        }
+        
+        selectedProduct = products[0]
+        productsButton.selectItemAtIndex(0)
+    
     }
 
     override var representedObject: AnyObject? {
@@ -21,7 +38,31 @@ class ViewController: NSViewController {
         // Update the view, if already loaded.
         }
     }
+    
+    override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
+        let tabViewController = segue.destinationController
+        for controller in tabViewController.childViewControllers{
+            if controller is OverviewController {
+                overviewViewController = controller as! OverviewController
+                overviewViewController.selectedProduct = selectedProduct
+            }else{
+                // More
+                detailViewController = controller as! DetailViewController
+                detailViewController.selectedProduct = selectedProduct
+            }
+        }
+    }
 
+    @IBAction func valueChanged(sender: NSPopUpButton) {
+        
+        if let bookTitle = sender.selectedItem?.title,
+            let index = products.indexOf({$0.title == bookTitle})
+        {
+            selectedProduct = products[index]
+            overviewViewController.selectedProduct = selectedProduct
+            detailViewController.selectedProduct = selectedProduct
 
+        }
+    }
 }
 
